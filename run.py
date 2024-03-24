@@ -16,11 +16,10 @@ https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/Q42
 https://www.wikidata.org/w/rest.php/wikibase/v0/entities/properties/P21
 """
 
-# from p_tqdm import p_map
 
+from wikidatachat.textification import get_wikidata_statements_from_query
+from wikidatachat.rag import question_answer_pipeline
 
-from textification import get_wikidata_statements_from_query
-from tqdm import tqdm
 if __name__ == '__main__':
 
     SERAPI_API_KEY = os.environ.get('SERAPI_API_KEY')
@@ -64,9 +63,6 @@ if __name__ == '__main__':
             verbose=verbose
         )
 
-    model, tokenizer = initialize_model_and_tokenizer(
-        model_name=model_name, quantization=False)
-
     question_answer_pipeline(
         question=question,
         max_length=max_length,
@@ -82,7 +78,7 @@ if __name__ == '__main__':
         wikidata_base=wikidata_base,
         verbose=verbose
     )
-
+    """
     urls = ['https://www.wikidata.org/wiki/Q42']
     items_json = download_and_extract_items(
         urls=urls,
@@ -105,3 +101,4 @@ if __name__ == '__main__':
         print('items_json is empty')
 
     print(statements)
+    """
