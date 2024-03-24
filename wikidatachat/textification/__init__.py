@@ -1,0 +1,1 @@
+from textification import get_wikidata_statements_from_query
