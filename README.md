@@ -31,7 +31,7 @@ docker run  \
   --tty \
   --name wikidatachat \
   wikidatachat
-
+```
 This will deploy the UI to `localhost:8000`, allowing local access to the WikidataQAChat interface.
 
 ## Usage
