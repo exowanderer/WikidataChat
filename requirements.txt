@@ -1,0 +1,8 @@
+bitsandbytes>=0.39.0
+accelerate
+transformers
+google-search-results
+requests
+beautifulsoup4
+langchain_community
+langchain

@@ -15,18 +15,6 @@ https://www.wikidata.org/wiki/Wikidata:REST_API
 https://www.wikidata.org/w/rest.php/wikibase/v0/entities/items/Q42
 https://www.wikidata.org/w/rest.php/wikibase/v0/entities/properties/P21
 """
-"""
-# !pip install -i https://pypi.org/simple/ bitsandbytes
-!pip install bitsandbytes>=0.39.0
-!pip install --upgrade accelerate
-!pip install --upgrade transformers
-!pip install google-search-results requests beautifulsoup4
-!pip install langchain_community langchain
-# !pip install --upgrade transformers
-# !pip install accelerate
-# !pip install bitsandbytes
-# !pip install p_tqdm
-"""
 
 # from p_tqdm import p_map
 
