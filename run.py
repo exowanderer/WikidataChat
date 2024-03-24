@@ -53,7 +53,7 @@ if __name__ == '__main__':
         text_input = None
 
     if text_input is None:
-        text_input = get_wikidata_statements_from_query(
+        text_input = get_wikidata_statements_from_query(  # Textification
             question=question,
             lang=lang,
             timeout=timeout,
@@ -78,6 +78,7 @@ if __name__ == '__main__':
         wikidata_base=wikidata_base,
         verbose=verbose
     )
+
     """
     urls = ['https://www.wikidata.org/wiki/Q42']
     items_json = download_and_extract_items(
