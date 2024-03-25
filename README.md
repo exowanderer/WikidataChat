@@ -11,6 +11,8 @@ WikidataQAChat boasts a unique textification pipeline with the following capabil
 - **RAG Pipeline**: Merges Wikidata string statements with user-provided questions to generate informed and accurate answers through an LLM.
 - **User Interface**: Offers a friendly UI that not only presents answers but also provides linked lists of Wikidata and Wikipedia URLs for further exploration.
 
+![alt text](https://github.com/exowanderer/WikidataChat/blob/main/wikidatachat_meaning_of_life_example_mar25_2024.png?raw=true)
+
 ## Getting Started
 
 ### Prerequisites
