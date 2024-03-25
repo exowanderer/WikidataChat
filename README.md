@@ -11,6 +11,8 @@ WikidataQAChat boasts a unique textification pipeline with the following capabil
 - **RAG Pipeline**: Merges Wikidata string statements with user-provided questions to generate informed and accurate answers through an LLM.
 - **User Interface**: Offers a friendly UI that not only presents answers but also provides linked lists of Wikidata and Wikipedia URLs for further exploration.
 
+![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/feature/merge_docker_from_gbnc/images/wikidatachat_meaning_of_life_example_mar25_2024.png?raw=true)
+
 ## Getting Started
 
 ### Prerequisites
@@ -19,9 +21,10 @@ WikidataQAChat boasts a unique textification pipeline with the following capabil
 ### Installation
 Deploy WikidataQAChat using Docker with the following commands:
 ```bash
-DOCKER_BUILDKIT=1 docker build . -t wikidatachat
+DOCKER_BUILDKIT=1 docker build . -t wdchat
+
 docker run  \
-  --env HF_TOKEN=$HF_TOKEN \
+  --env HUGGING_FACE_HUB_TOKEN=$HUGGING_FACE_HUB_TOKEN \
   --env SERAPI_API_KEY=$SERAPI_API_KEY \
   --volume "$(pwd)/wikidatachat":/workspace/wikidatachat \
   --volume wdchat_cache:/root/.cache \
@@ -29,9 +32,10 @@ docker run  \
   --rm \
   --interactive \
   --tty \
-  --name wikidatachat \
-  wikidatachat
+  --name wdchat \
+  wdchat
 ```
+
 This will deploy the UI to `localhost:8000`, allowing local access to the WikidataQAChat interface.
 
 ## Usage
