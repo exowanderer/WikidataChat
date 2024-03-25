@@ -59,4 +59,4 @@ WikidataQAChat is open-source software licensed under the MIT License. You are f
 ## Contact
 For questions, comments, or discussions, please open an issue on this GitHub repository. We are committed to fostering a welcoming and collaborative community.
 
-![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/main/images/WikidataChat_Meaning_of_Life_Graphic.jpg?raw=true)
+![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/main/images/WikidataChat_Meaning_of_Life_Graphic.jpg)
