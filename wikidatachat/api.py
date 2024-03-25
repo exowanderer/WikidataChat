@@ -5,11 +5,8 @@ from typing import Annotated
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, Header
-from multiprocessing import Pool, cpu_count
-from multiprocessing.dummy import Pool as ThreadPool
 
 from .rag import rag_pipeline
-from .textification import get_wikidata_statements_from_query
 from .logger import get_logger
 
 # Create logger instance from base logger config in `logger.py`
@@ -50,24 +47,19 @@ async def api(query, top_k=3, lang='en'):
     logger.debug(f'{top_k=}')
     logger.debug(f'{lang=}')
 
-    wikidata_statements = get_wikidata_statements_from_query(
-        query,
-        lang='en',
-        timeout=10,
-        n_cores=cpu_count(),
-        verbose=False,
-        api_url='https://www.wikidata.org/w',
-        wikidata_base='"wikidata.org"',
-        serapi_api_key=os.environ.get("SERAPI_API_KEY"),
-        return_list=True
-    )
-
-    logger.debug(f'{wikidata_statements=}')
-
     answer = rag_pipeline(
         query=query,
         top_k=top_k,
-        lang=lang
+        lang=lang,
+        content_key='statement',
+        meta_keys=[
+            'qid',
+            'pid',
+            'value',
+            'item_label',
+            'property_label',
+            'value_content'
+        ]
     )
 
     sources = [

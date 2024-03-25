@@ -66,6 +66,8 @@ def get_json_from_wikidata(
 
     counter = 0
     while True:
+        if '//' in thing_url:
+            break
         try:
             with urllib.request.urlopen(thing_url) as j_inn:
                 # Decode and parse the JSON data
@@ -80,16 +82,18 @@ def get_json_from_wikidata(
                 # master_cache[thing_id] = {}, thing_url
 
             if return_blank:
-                return {}, thing_url
+                break
 
             if counter == timeout:
                 print(f"Timout({counter}) reached; Error downloading ")
                 print(f"{thing}:{thing_id}:{key}:{thing_url}")
                 print(f"Error: {e}")
 
-                return {}, thing_url
+                break
 
         counter = counter + 1
+
+    return {}, thing_url
 
 
 def get_item_json_from_wikidata(

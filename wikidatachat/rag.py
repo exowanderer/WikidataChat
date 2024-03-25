@@ -1,22 +1,79 @@
+import os
+
 # from haystack import Pipeline
 from haystack import Document
 from haystack.components.builders.answer_builder import AnswerBuilder
 from haystack.dataclasses import ChatMessage
 
+from multiprocessing import Pool, cpu_count
+from multiprocessing.dummy import Pool as ThreadPool
+
 from .llm_config import llm
 from .logger import get_logger
 from .prompt import user_prompt_builders, system_prompts
-from .vector_store_interface import embedder, retriever, input_documents
+from .textification import get_wikidata_statements_from_query
+from .vector_store_interface import (
+    build_document_store_from_dicts,
+    make_embedder,
+    setup_document_stream_from_json,
+    setup_document_stream_from_list
+)
+
 
 # Create logger instance from base logger config in `logger.py`
 logger = get_logger(__name__)
 
+# _, retriever = setup_document_stream_from_json(
+#     json_dir='json_input',
+#     json_fname='excellent-articles_10.json',
+#     embedding_similarity_function="cosine",
+#     device="cpu"
+# )
 
-def rag_pipeline(query: str, top_k: int = 3, lang: str = 'de'):
+global embedder
+embedder = None
+
+
+def rag_pipeline(
+        query: str, top_k: int = 3, lang: str = 'de', device: str = 'cpu',
+        content_key: str = None, meta_keys: list = [],
+        embedding_similarity_function: str = "cosine",
+        sentence_transformer_model: str = 'svalabs/german-gpl-adapted-covid'):
+
+    # TODO: Test if this loads more than once or needs a global variable
+    global embedder
+    if embedder is None:
+        embedder = make_embedder(
+            sentence_transformer_model=sentence_transformer_model,
+            device=device
+        )
 
     query_document = Document(content=query)
     query_embedded = embedder.run([query_document])
     query_embedding = query_embedded['documents'][0].embedding
+
+    wikidata_statements = get_wikidata_statements_from_query(
+        query,
+        lang='en',
+        timeout=10,
+        n_cores=cpu_count(),
+        verbose=False,
+        api_url='https://www.wikidata.org/w',
+        wikidata_base='"wikidata.org"',
+        serapi_api_key=os.environ.get("SERAPI_API_KEY"),
+        return_list=True
+    )
+
+    logger.debug(f'{wikidata_statements=}')
+
+    _, retriever = setup_document_stream_from_list(
+        dict_list=wikidata_statements,
+        content_key=content_key,
+        meta_keys=meta_keys,
+        embedder=embedder,
+        embedding_similarity_function=embedding_similarity_function,
+        device=device
+    )
 
     retriever_results = retriever.run(
         query_embedding=list(query_embedding),
@@ -48,7 +105,7 @@ def rag_pipeline(query: str, top_k: int = 3, lang: str = 'de'):
     ]
 
     response = llm.run(
-        messages, 
+        messages,
         # generation_kwargs={"temperature": 0.2}
     )
 

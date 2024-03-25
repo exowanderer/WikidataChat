@@ -14,7 +14,7 @@
         class="flex justify-center space-x-3 text-4xl md:text-5xl text-light-text dark:text-dark-text font-display"
       >
         <Icon icon="ooui:logo-wikimedia" />
-        <p class="-mt-[0.025em] md:mt-0">ChatGSWiki</p>
+        <p class="-mt-[0.025em] md:mt-0">WikidataChat</p>
       </h1>
 
       <div v-if="!apiSecret()"></div>
