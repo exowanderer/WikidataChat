@@ -11,7 +11,7 @@ WikidataQAChat boasts a unique textification pipeline with the following capabil
 - **RAG Pipeline**: Merges Wikidata string statements with user-provided questions to generate informed and accurate answers through an LLM.
 - **User Interface**: Offers a friendly UI that not only presents answers but also provides linked lists of Wikidata and Wikipedia URLs for further exploration.
 
-![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/feature/merge_docker_from_gbnc/images/wikidatachat_meaning_of_life_example_mar25_2024.png?raw=true)
+![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/main/images/wikidatachat_meaning_of_life_example_mar25_2024.png?raw=true)
 
 ## Getting Started
 
@@ -54,3 +54,5 @@ WikidataQAChat is open-source software licensed under the MIT License. You are f
 
 ## Contact
 For questions, comments, or discussions, please open an issue on this GitHub repository. We are committed to fostering a welcoming and collaborative community.
+
+![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/main/images/WikidataChat_Meaning_of_Life_Graphic.jpg?raw=true)
