@@ -36,7 +36,7 @@ async def favicon():
 
 # async def api(x_api_secret: Annotated[str, Header()], query, top_k=3, lang='en'):
 @app.get("/api")
-async def api(query, top_k=3, lang='en'):
+async def api(query, top_k=10, lang='en'):
     # if not API_SECRET == x_api_secret:
     #     raise Exception("API key is missing or incorrect")
 
@@ -62,9 +62,12 @@ async def api(query, top_k=3, lang='en'):
         ]
     )
 
+    for d_ in answer.documents:
+        logger.debug(f'{d_.meta}')
+
     sources = [
         {
-            "src": d_.meta['src'],
+            "src": f"https://www.wikidata.org/wiki/{d_.meta['qid']}",
             "content": d_.content,
             "score": d_.score
         } for d_ in answer.documents

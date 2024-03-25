@@ -20,7 +20,8 @@ logger = get_logger(__name__)
 
 
 # disable this line to disable the embedding cache
-EMBEDDING_CACHE_FILE = '/root/.cache/wdchat_embeddings.json'
+# EMBEDDING_CACHE_FILE = '/root/.cache/wdchat_embeddings.json'
+EMBEDDING_CACHE_FILE = None
 
 
 def build_document_store_from_json(
@@ -68,6 +69,7 @@ def build_document_store_from_dicts(
         dict_list: list,
         content_key: str,
         meta_keys: list = []):
+
     return [
         Document(
             content=obj_[content_key],
@@ -140,7 +142,7 @@ def build_documentstore_embedder_retriever(
         # embedding_dim=768,
         # duplicate_documents="overwrite"
     )
-
+    """
     if EMBEDDING_CACHE_FILE and os.path.isfile(EMBEDDING_CACHE_FILE):
         logger.info('Loading embeddings from cache')
 
@@ -151,6 +153,8 @@ def build_documentstore_embedder_retriever(
                 policy=DuplicatePolicy.OVERWRITE
             )
     elif embedder is not None:
+    """
+    if embedder is not None:
         logger.debug("Generating embeddings")
 
         embedded = embedder.run(input_documents)
@@ -158,14 +162,18 @@ def build_documentstore_embedder_retriever(
             documents=embedded['documents'],
             policy=DuplicatePolicy.OVERWRITE
         )
-
+        """
         if EMBEDDING_CACHE_FILE:
+            logger.debug(
+                f'Grabbing Embedding from file: {EMBEDDING_CACHE_FILE}'
+            )
             with open(EMBEDDING_CACHE_FILE, 'w') as f_out:
                 documents_dict = [
                     Document.to_dict(d_)
                     for d_ in embedded['documents']
                 ]
                 json.dump(documents_dict, f_out)
+        """
 
     return document_store
 
@@ -204,7 +212,7 @@ def setup_document_stream_from_json(
 
     retriever = make_retriever(document_store)
 
-    return document_store, embedder, retriever
+    return document_store, retriever
 
 
 def setup_document_stream_from_list(
@@ -214,6 +222,11 @@ def setup_document_stream_from_list(
         embedder: SentenceTransformersDocumentEmbedder = None,
         embedding_similarity_function: str = "cosine",
         device: str = "cpu"):
+
+    if embedder is None:
+        embedder = make_embedder(
+            sentence_transformer_model=sentence_transformer_model
+        )
 
     input_documents = build_document_store_from_dicts(
         dict_list=dict_list,
@@ -233,4 +246,4 @@ def setup_document_stream_from_list(
 
     retriever = make_retriever(document_store)
 
-    return document_store, embedder, retriever
+    return document_store, retriever

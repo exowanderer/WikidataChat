@@ -144,7 +144,7 @@ def make_statement(
             'item_label': item_label,
             'property_label': property_label,
             'value_content': value_content,
-            'statement_': statement_
+            'statement': statement_
         })
 
     return statements
@@ -275,8 +275,7 @@ def get_wikidata_statements_from_query(
         serapi_api_key
     )
 
-    convert_dict = dict(
-        # item_json=wikidata_item_,
+    assert (wikidata_items is not None), dict(
         api_url=api_url,
         lang=lang,
         timeout=timeout,
@@ -284,20 +283,20 @@ def get_wikidata_statements_from_query(
         return_list=return_list,
         verbose=verbose
     )
-    assert (wikidata_items is not None), convert_dict
-    wikidata_statements = [
-        convert_wikidata_item_to_statements(
-            item_json=wikidata_item_,
-            api_url=api_url,
-            lang=lang,
-            timeout=timeout,
-            n_cores=n_cores,
-            return_list=return_list,
-            verbose=verbose
-        )
 
-        for wikidata_item_ in wikidata_items
-    ]
+    wikidata_statements = []
+    for wikidata_item_ in wikidata_items:
+        wikidata_statements.extend(
+            convert_wikidata_item_to_statements(
+                item_json=wikidata_item_,
+                api_url=api_url,
+                lang=lang,
+                timeout=timeout,
+                n_cores=n_cores,
+                return_list=return_list,
+                verbose=verbose
+            )
+        )
 
     if return_list:
         return wikidata_statements

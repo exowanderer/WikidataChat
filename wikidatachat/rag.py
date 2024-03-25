@@ -65,6 +65,11 @@ def rag_pipeline(
     )
 
     logger.debug(f'{wikidata_statements=}')
+    for wds_ in wikidata_statements:
+        logger.debug(f'{wds_=}')
+
+    # logger.debug(f'{len(wikidata_statements)=}')
+    # logger.debug(f'{type(wikidata_statements)=}')
 
     _, retriever = setup_document_stream_from_list(
         dict_list=wikidata_statements,
@@ -84,7 +89,7 @@ def rag_pipeline(
     )
 
     logger.debug('retriever results:')
-    for retriever_result_ in retriever_results:
+    for retriever_result_ in retriever_results['documents']:
         logger.debug(retriever_result_)
 
     system_prompt = system_prompts[lang]
