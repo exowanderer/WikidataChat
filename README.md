@@ -20,6 +20,7 @@ WikidataQAChat boasts a unique textification pipeline with the following capabil
 Deploy WikidataQAChat using Docker with the following commands:
 ```bash
 DOCKER_BUILDKIT=1 docker build . -t wdchat
+
 docker run  \
   --env HUGGING_FACE_HUB_TOKEN=$HUGGING_FACE_HUB_TOKEN \
   --env SERAPI_API_KEY=$SERAPI_API_KEY \
