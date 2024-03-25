@@ -1,3 +1,11 @@
+import requests
+import json
+import torch
+import urllib
+
+from bs4 import BeautifulSoup
+from serpapi import GoogleSearch
+
 
 def search_query(query, serapi_api_key, num_results=10):
     params = {
@@ -75,10 +83,10 @@ def get_json_from_wikidata(
                 return {}, thing_url
 
             if counter == timeout:
-                print(
-                    f"Timout({counter}) reached; Error downloading "
-                    f"{thing_url}: {e}"
-                )
+                print(f"Timout({counter}) reached; Error downloading ")
+                print(f"{thing}:{thing_id}:{key}:{thing_url}")
+                print(f"Error: {e}")
+
                 return {}, thing_url
 
         counter = counter + 1
@@ -88,10 +96,10 @@ def get_item_json_from_wikidata(
         qid, key=None, lang='en',
         api_url='https://www.wikidata.org/w', verbose=False):
 
-    if qid in item_cache.keys():
-        # if verbose:
-        #     print(f'Returning {qid} from cache')
-        return item_cache[qid]
+    # if qid in item_cache.keys():
+    #     # if verbose:
+    #     #     print(f'Returning {qid} from cache')
+    #     return item_cache[qid]
 
     # if verbose:
     #     print(f'Computing new {qid} into cache')
@@ -106,7 +114,7 @@ def get_item_json_from_wikidata(
 
     if len(item_json):
         # JSON Exists, store in property_cache
-        item_cache[qid] = item_json, item_url
+        # item_cache[qid] = item_json, item_url
         return item_json, item_url
 
     # No not store in cache
@@ -117,10 +125,10 @@ def get_property_json_from_wikidata(
         pid, key=None, lang='en',
         api_url='https://www.wikidata.org/w', verbose=False):
 
-    if pid in property_cache.keys():
-        # if verbose:
-        #     print(f'Returning {pid} from cache')
-        return property_cache[pid]
+    # if pid in property_cache.keys():
+    #     # if verbose:
+    #     #     print(f'Returning {pid} from cache')
+    #     return property_cache[pid]
 
     # if verbose:
     #     print(f'Computing new {pid} into cache')
@@ -135,7 +143,7 @@ def get_property_json_from_wikidata(
 
     if len(property_json):
         # JSON Exists, store in property_cache
-        property_cache[pid] = property_json, property_url
+        # property_cache[pid] = property_json, property_url
         return property_json, property_url
 
     # No not store in cache

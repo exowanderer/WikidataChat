@@ -1,3 +1,20 @@
+from functools import partial
+from multiprocessing import Pool, cpu_count
+from multiprocessing.dummy import Pool as ThreadPool
+from numpy import unique
+from tqdm import tqdm
+
+from .retrieve import (
+    download_and_extract_text,
+    download_and_extract_items,
+    get_item_json_from_wikidata,
+    get_property_json_from_wikidata,
+    search_query,
+)
+from .logger import get_logger
+
+# Create logger instance from base logger config in `logger.py`
+logger = get_logger(__name__)
 
 
 def convert_value_to_string(
@@ -5,7 +22,11 @@ def convert_value_to_string(
         api_url: str = 'https://www.wikidata.org/w'):
 
     wikidata_data_type = wikidata_statement['property']['data-type']
-    value_content = wikidata_statement['value']['content']
+
+    value_content = ''
+    if 'value' in wikidata_statement:
+        if 'content' in wikidata_statement['value']:
+            value_content = wikidata_statement['value']['content']
 
     if wikidata_data_type == 'wikibase-item':
         value_content, _ = get_item_json_from_wikidata(
@@ -162,7 +183,7 @@ def convert_wikidata_item_to_statements(
     for res_ in results:
         statements.extend(res_)
 
-    statements = np.unique(statements)
+    statements = unique(statements)
 
     # return statements
     return '\n'.join(statements)
@@ -199,7 +220,7 @@ def convert_wikipedia_item_to_statements(
     for res_ in results:
         statements.extend(res_)
 
-    statements = np.unique(statements)
+    statements = unique(statements)
 
     # return statements
     return '\n'.join(statements)
@@ -225,6 +246,8 @@ def get_wikidata_statements_from_query(
         question, lang='en', timeout=10, n_cores=cpu_count(), verbose=False,
         api_url='https://www.wikidata.org/w', wikidata_base='"wikidata.org"',
         serapi_api_key=None):
+
+    logger.debug(f'{serapi_api_key=}')
 
     assert (serapi_api_key is not None), (
         'get_wikidata_statements_from_query received serapi_api_key = None'
