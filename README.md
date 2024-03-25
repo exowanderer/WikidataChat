@@ -19,9 +19,9 @@ WikidataQAChat boasts a unique textification pipeline with the following capabil
 ### Installation
 Deploy WikidataQAChat using Docker with the following commands:
 ```bash
-DOCKER_BUILDKIT=1 docker build . -t wikidatachat
+DOCKER_BUILDKIT=1 docker build . -t wdchat
 docker run  \
-  --env HF_TOKEN=$HF_TOKEN \
+  --env HUGGING_FACE_HUB_TOKEN=$HUGGING_FACE_HUB_TOKEN \
   --env SERAPI_API_KEY=$SERAPI_API_KEY \
   --volume "$(pwd)/wikidatachat":/workspace/wikidatachat \
   --volume wdchat_cache:/root/.cache \
@@ -29,9 +29,10 @@ docker run  \
   --rm \
   --interactive \
   --tty \
-  --name wikidatachat \
-  wikidatachat
+  --name wdchat \
+  wdchat
 ```
+
 This will deploy the UI to `localhost:8000`, allowing local access to the WikidataQAChat interface.
 
 ## Usage
