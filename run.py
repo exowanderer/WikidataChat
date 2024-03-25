@@ -50,6 +50,7 @@ if __name__ == '__main__':
     verbose = True
 
     if 'text_input' not in locals():
+        # Set as None to only start fresh once
         text_input = None
 
     if text_input is None:

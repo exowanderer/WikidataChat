@@ -41,7 +41,7 @@ After installation, access the WikidataQAChat through your web browser by naviga
 We welcome contributions from the community. Whether it's features, bug fixes, or documentation, here's how you can help:
 1. Fork the repository and create a branch for your contribution. Use descriptive names like `feature/streamlined_rag_pipeline` for features or `bug/localhost_is_blank` for bug fixes.
 2. Submit pull requests with your changes. Make sure your contributions are narrowly defined and clearly described.
-3. Report issues or suggest features using clear and concise titles like `feature/localhost_is_blank`.
+3. Report issues or suggest features using clear and concise titles like `feature_request/include_download_option`.
 
 Please adhere to the Wikimedia Community Universal Code of Conduct when contributing.
 
