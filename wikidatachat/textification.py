@@ -74,12 +74,12 @@ def convert_value_to_string(
         )
 
     # elif wikidata_data_type == 'English':
-    #     # print(
+    #     # logger.debug([
     #           wikidata_data_type,
     #           item_label,
     #           property_label,
     #           value
-    #     )
+    #     ])
     #     value_content = value['text']
     #     property_label = (
     #         f'has the {lang_} monolingual text identifier'
@@ -92,9 +92,6 @@ def convert_value_to_string(
 def make_statement(
         prop_input, item_label, qid=None, key=None, lang='en', timeout=100,
         api_url: str = 'https://www.wikidata.org/w', verbose=False):
-
-    # if verbose:
-    #     print('Now! Textify!')
 
     pid, properties = prop_input
 
@@ -126,19 +123,19 @@ def make_statement(
             statement_ = ' '.join([item_label, property_label, value_content])
 
             # if verbose:
-            #     print(statement_)
+            #     logger.debug(statement_)
 
         except Exception as e:
-            print(f'Found Error: {e}')
+            logger.debug(f'Found Error: {e}')
 
             if verbose:
-                print()
-                print(
+                logger.debug()
+                logger.debug([
                     wikidata_statement_['property']['data-type'],
                     item_label,
                     property_label,
                     value_content
-                )
+                ])
 
         statements.append({
             'qid': qid,
@@ -278,6 +275,16 @@ def get_wikidata_statements_from_query(
         serapi_api_key
     )
 
+    convert_dict = dict(
+        # item_json=wikidata_item_,
+        api_url=api_url,
+        lang=lang,
+        timeout=timeout,
+        n_cores=n_cores,
+        return_list=return_list,
+        verbose=verbose
+    )
+    assert (wikidata_items is not None), convert_dict
     wikidata_statements = [
         convert_wikidata_item_to_statements(
             item_json=wikidata_item_,

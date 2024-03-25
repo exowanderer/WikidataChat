@@ -6,6 +6,9 @@ import urllib
 from bs4 import BeautifulSoup
 from serpapi import GoogleSearch
 
+from .logger import get_logger
+logger = get_logger(__name__)
+
 
 def search_query(query, serapi_api_key, num_results=10):
     params = {
@@ -18,7 +21,7 @@ def search_query(query, serapi_api_key, num_results=10):
     search = GoogleSearch(params).get_dict()
 
     results = search.get("organic_results", [])
-
+    # logger.debug(f'{results=}')
     return [result["link"] for result in results if "link" in result]
 
 
@@ -26,7 +29,7 @@ def download_and_extract_text(
         urls, wiki_url='https://www.wikidata.org/wiki/Q', timeout=100):
     headers = {'User-Agent': 'Mozilla/5.0'}
     texts = []
-
+    logger.debug(f'{urls=}')
     for url in urls:
         if wiki_url not in url:
             continue  # Skip all non wiki urls
@@ -37,8 +40,9 @@ def download_and_extract_text(
                 soup = BeautifulSoup(response.content, 'html.parser')
                 texts.append({url: soup.get_text()})
         except Exception as e:
-            print(f"Failed to process {url}: {e}")
+            logger.debug(f"Failed to process {url}: {e}")
 
+    logger.debug(f'{texts=}')
     return texts
 
 
@@ -78,16 +82,16 @@ def get_json_from_wikidata(
 
         except Exception as e:
             if verbose:
-                print(f"Error downloading {thing_url}: {e}")
+                logger.debug(f"Error downloading {thing_url}: {e}")
                 # master_cache[thing_id] = {}, thing_url
 
             if return_blank:
                 break
 
             if counter == timeout:
-                print(f"Timout({counter}) reached; Error downloading ")
-                print(f"{thing}:{thing_id}:{key}:{thing_url}")
-                print(f"Error: {e}")
+                logger.debug(f"Timout({counter}) reached; Error downloading ")
+                logger.debug(f"{thing}:{thing_id}:{key}:{thing_url}")
+                logger.debug(f"Error: {e}")
 
                 break
 
@@ -102,11 +106,11 @@ def get_item_json_from_wikidata(
 
     # if qid in item_cache.keys():
     #     # if verbose:
-    #     #     print(f'Returning {qid} from cache')
+    #     #     logger.debug(f'Returning {qid} from cache')
     #     return item_cache[qid]
 
     # if verbose:
-    #     print(f'Computing new {qid} into cache')
+    #     logger.debug(f'Computing new {qid} into cache')
 
     item_json, item_url = get_json_from_wikidata(
         thing_id=qid,
@@ -131,11 +135,11 @@ def get_property_json_from_wikidata(
 
     # if pid in property_cache.keys():
     #     # if verbose:
-    #     #     print(f'Returning {pid} from cache')
+    #     #     logger.debug(f'Returning {pid} from cache')
     #     return property_cache[pid]
 
     # if verbose:
-    #     print(f'Computing new {pid} into cache')
+    #     logger.debug(f'Computing new {pid} into cache')
 
     property_json, property_url = get_json_from_wikidata(
         thing_id=pid,
@@ -187,6 +191,6 @@ def download_and_extract_items(
             })
 
         except Exception as e:
-            print(f'Failed to process {url}: {e}')
+            logger.debug(f'Failed to process {url}: {e}')
 
     return items
