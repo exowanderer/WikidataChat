@@ -23,21 +23,22 @@ def convert_value_to_string(
 
     wikidata_data_type = wikidata_statement['property']['data-type']
 
+    value = ''
     value_content = ''
     if 'value' in wikidata_statement:
         if 'content' in wikidata_statement['value']:
-            value_content = wikidata_statement['value']['content']
+            value = wikidata_statement['value']['content']
 
     if wikidata_data_type == 'wikibase-item':
         value_content, _ = get_item_json_from_wikidata(
-            qid=value_content,
+            qid=value,
             key='labels',
             lang=lang,
             api_url=api_url
         )
 
     elif wikidata_data_type == 'time':
-        value_content = value_content['time']
+        value_content = value['time']
         property_label = (
             f'has more information to be found at the {property_label}'
         )
@@ -59,32 +60,37 @@ def convert_value_to_string(
         )
 
     elif wikidata_data_type == 'quantity':
-        value_content = value_content['amount']
+        value_content = value['amount']
         property_label = (
             f'has the quantity of {property_label} at'
         )
 
     elif wikidata_data_type == 'monolingualtext':
-        lang_ = value_content['language']
-        value_content = value_content['text']
+        lang_ = value['language']
+        value_content = value['text']
         property_label = (
             f'has the {lang_} monolingual text identifier'
             f' of {property_label} at'
         )
 
     # elif wikidata_data_type == 'English':
-    #     # print(wikidata_data_type, item_label, property_label, value_content)
-    #     value_content = value_content['text']
+    #     # print(
+    #           wikidata_data_type,
+    #           item_label,
+    #           property_label,
+    #           value
+    #     )
+    #     value_content = value['text']
     #     property_label = (
     #         f'has the {lang_} monolingual text identifier'
     #         f' of {property_label} at'
     #     )
 
-    return property_label, value_content
+    return property_label, value_content, value
 
 
 def make_statement(
-        prop_input, item_label, key=None, lang='en', timeout=100,
+        prop_input, item_label, qid=None, key=None, lang='en', timeout=100,
         api_url: str = 'https://www.wikidata.org/w', verbose=False):
 
     # if verbose:
@@ -104,7 +110,7 @@ def make_statement(
 
     statements = []
     for wikidata_statement_ in properties:
-        property_label, value_content = convert_value_to_string(
+        property_label, value_content, value = convert_value_to_string(
             wikidata_statement=wikidata_statement_,
             property_label=property_label,
             lang=lang,
@@ -134,7 +140,15 @@ def make_statement(
                     value_content
                 )
 
-        statements.append(statement_)
+        statements.append({
+            'qid': qid,
+            'pid': pid,
+            'value': value if isinstance(value, str) else value_content,
+            'item_label': item_label,
+            'property_label': property_label,
+            'value_content': value_content,
+            'statement_': statement_
+        })
 
     return statements
 
@@ -142,7 +156,7 @@ def make_statement(
 def convert_wikidata_item_to_statements(
         item_json: dict = None, api_url: str = 'https://www.wikidata.org/w',
         lang: str = 'en', timeout: float = 10, n_cores: int = cpu_count(),
-        verbose: bool = False):
+        return_list=False, verbose: bool = False):
 
     if item_json is None:
         item_json = {}
@@ -183,10 +197,12 @@ def convert_wikidata_item_to_statements(
     for res_ in results:
         statements.extend(res_)
 
-    statements = unique(statements)
+    return statements
+    # # statements = unique(statements)
 
-    # return statements
-    return '\n'.join(statements)
+    # # return string statements
+    # statements = [wds_['statement']]
+    # return '\n'.join(statements)
 
 
 def convert_wikipedia_item_to_statements(
@@ -194,6 +210,7 @@ def convert_wikipedia_item_to_statements(
         lang: str = 'en', timeout: float = 10, n_cores: int = cpu_count(),
         verbose: bool = False):
 
+    qid = item_json['item_data']['id']
     item_label = item_json['item_data']['labels'][lang]
     item_desc = item_json['item_data']['descriptions'][lang]
 
@@ -204,6 +221,7 @@ def convert_wikipedia_item_to_statements(
 
     item_pool = partial(
         make_statement,
+        qid=qid,
         item_label=item_label,
         lang=lang,
         timeout=timeout,
@@ -245,9 +263,7 @@ def search_and_extract_json(query, serapi_api_key):
 def get_wikidata_statements_from_query(
         question, lang='en', timeout=10, n_cores=cpu_count(), verbose=False,
         api_url='https://www.wikidata.org/w', wikidata_base='"wikidata.org"',
-        serapi_api_key=None):
-
-    logger.debug(f'{serapi_api_key=}')
+        return_list=True, serapi_api_key=None):
 
     assert (serapi_api_key is not None), (
         'get_wikidata_statements_from_query received serapi_api_key = None'
@@ -267,14 +283,18 @@ def get_wikidata_statements_from_query(
             lang=lang,
             timeout=timeout,
             n_cores=n_cores,
+            return_list=return_list,
             verbose=verbose
         )
 
         for wikidata_item_ in wikidata_items
     ]
 
-    text_output = '\n'.join(wikidata_statements)
-    return text_output.replace('\n\n', '\n')
+    if return_list:
+        return wikidata_statements
+
+    wikidata_statements = [wds_['statement'] for wds_ in wikidata_statements]
+    return '\n'.join(wikidata_statements).replace('\n\n', '\n')
 
 
 def get_wikipedia_statements_from_query(

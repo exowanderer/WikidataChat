@@ -58,7 +58,8 @@ async def api(query, top_k=3, lang='en'):
         verbose=False,
         api_url='https://www.wikidata.org/w',
         wikidata_base='"wikidata.org"',
-        serapi_api_key=os.environ.get("SERAPI_API_KEY")
+        serapi_api_key=os.environ.get("SERAPI_API_KEY"),
+        return_list=True
     )
 
     logger.debug(f'{wikidata_statements=}')
