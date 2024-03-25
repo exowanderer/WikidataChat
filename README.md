@@ -42,8 +42,8 @@ This will deploy the UI to `localhost:8000`, allowing local access to the Wikida
 After installation, access the WikidataQAChat through your web browser by navigating to `localhost:8000`. If deployed on an internet-accessible server, the interface can be accessed from the respective web address, providing a seamless experience for asking questions and receiving answers.
 
 The UI and Haystack functionality were developed with colleagues from Wikimedia Deutschland
-- [Haystack: rti](https://github.com/rti/gbnc/)
-- [UI: andrewtavis](https://github.com/andrewtavis/gbnc)
+- [Haystack Pipeline: rti](https://github.com/rti/gbnc/)
+- [Vue3 UI: andrewtavis](https://github.com/andrewtavis/gbnc)
 
 ## Contributing
 We welcome contributions from the community. Whether it's features, bug fixes, or documentation, here's how you can help:
