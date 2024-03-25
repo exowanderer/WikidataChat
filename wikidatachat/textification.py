@@ -161,6 +161,7 @@ def convert_wikidata_item_to_statements(
     if item_json is None:
         item_json = {}
 
+    qid = item_json['item_data']['id']
     item_label = item_json['item_data']['labels'][lang]
     item_desc = item_json['item_data']
 
@@ -181,6 +182,7 @@ def convert_wikidata_item_to_statements(
 
     item_pool = partial(
         make_statement,
+        qid=qid,
         item_label=item_label,
         lang=lang,
         timeout=timeout,
@@ -205,7 +207,7 @@ def convert_wikidata_item_to_statements(
     # return '\n'.join(statements)
 
 
-def convert_wikipedia_item_to_statements(
+def convert_wikipedia_page_to_statements(
         item_json: dict = None, api_url: str = 'https://www.wikidata.org/w',
         lang: str = 'en', timeout: float = 10, n_cores: int = cpu_count(),
         verbose: bool = False):
