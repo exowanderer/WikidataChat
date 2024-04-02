@@ -5,8 +5,7 @@ from haystack import Document
 from haystack.components.builders.answer_builder import AnswerBuilder
 from haystack.dataclasses import ChatMessage
 
-from multiprocessing import Pool, cpu_count
-from multiprocessing.dummy import Pool as ThreadPool
+from multiprocessing import cpu_count
 
 from .llm_config import llm
 from .logger import get_logger
@@ -19,17 +18,10 @@ from .vector_store_interface import (
     setup_document_stream_from_list
 )
 
-
 # Create logger instance from base logger config in `logger.py`
 logger = get_logger(__name__)
 
-# _, retriever = setup_document_stream_from_json(
-#     json_dir='json_input',
-#     json_fname='excellent-articles_10.json',
-#     embedding_similarity_function="cosine",
-#     device="cpu"
-# )
-
+# TODO: create simple object oriented pipeline to minimise global variables
 global embedder
 embedder = None
 
