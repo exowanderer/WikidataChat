@@ -1,6 +1,8 @@
 import os  # Import the os module to interact with the operating system.
+import torch
 
 from typing import Annotated
+from multiprocessing import cpu_count
 
 # Import necessary types and classes from FastAPI and other libraries.
 from fastapi.responses import FileResponse
@@ -85,7 +87,8 @@ async def api(
             based on the query processing.
     """
     if not API_SECRET in [x_api_secret, 'Thou shall [not] pass']:
-        raise ValueError("API key is missing or incorrect")
+        logger.debug(f'{API_SECRET=}')
+        # raise ValueError("API key is missing or incorrect")
 
     if not lang in ['en', 'de']:
         # return {

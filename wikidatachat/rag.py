@@ -41,11 +41,12 @@ class RetreivalAugmentedGenerationPipeline:
         """
         # Initialize a logger for this class.
         self.logger = get_logger(__name__)
-
+        self.device = device
+        self.embedding_model = embedding_model
         # Initialize the embedder with the specified model and device.
         self.embedder = make_embedder(
-            embedding_model=embedding_model,
-            device=device
+            embedding_model=self.embedding_model,
+            device=self.device
         )
 
     def process_query(
@@ -109,7 +110,7 @@ class RetreivalAugmentedGenerationPipeline:
             meta_keys=meta_keys,
             embedder=self.embedder,
             embedding_similarity_function=embedding_similarity_function,
-            device=device
+            device=self.device
         )
 
         # Run the retriever to find relevant documents
