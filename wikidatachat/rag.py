@@ -18,15 +18,19 @@ from .vector_store_interface import (
     setup_document_stream_from_list
 )
 
+SERAPI_API_KEY = os.environ.get("SERAPI_API_KEY")
+
 
 class RetreivalAugmentedGenerationPipeline:
     def __init__(
-            self,
-            embedding_model='svalabs/german-gpl-adapted-covid', device='cpu'):
+            self, embedding_model='svalabs/german-gpl-adapted-covid',
+            device='cpu'):
 
         self.logger = get_logger(__name__)
         self.embedder = make_embedder(
-            sentence_transformer_model=sentence_transformer_model, device=device)
+            embedding_model=embedding_model,
+            device=device
+        )
 
     def process_query(
             self, query: str, top_k: int = 3, lang: str = 'de',
@@ -51,7 +55,7 @@ class RetreivalAugmentedGenerationPipeline:
         wikidata_statements = get_wikidata_statements_from_query(
             query,
             lang=lang,
-            serapi_api_key=os.environ.get("SERAPI_API_KEY"),
+            serapi_api_key=SERAPI_API_KEY,
             **wikidata_kwargs
         )
 
@@ -65,7 +69,7 @@ class RetreivalAugmentedGenerationPipeline:
             meta_keys=meta_keys,
             embedder=self.embedder,
             embedding_similarity_function=embedding_similarity_function,
-            device='cpu'
+            device=device
         )
 
         retriever_results = retriever.run(
