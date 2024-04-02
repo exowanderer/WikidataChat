@@ -36,6 +36,7 @@ RUN npm install -g yarn
 COPY --from=ollama /usr/bin/ollama /usr/local/ollama/bin/ollama
 ENV PATH="/usr/local/ollama/bin:${PATH}"
 ENV FRONTEND_STATIC_DIR='./frontend/dist'
+ENV EMBEDDING_MODEL='svalabs/german-gpl-adapted-covid'
 
 # Setup the app in workspace
 WORKDIR /workspace

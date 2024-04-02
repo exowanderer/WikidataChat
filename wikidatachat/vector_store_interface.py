@@ -116,14 +116,14 @@ def clean_documents(input_documents: list):
 
 
 def make_embedder(
-        sentence_transformer_model: str = 'svalabs/german-gpl-adapted-covid',
+        embedding_model: str = 'svalabs/german-gpl-adapted-covid',
         device: str = 'cpu'):
 
     # https://huggingface.co/svalabs/german-gpl-adapted-covid
-    logger.info(f'Sentence Transformer Name: {sentence_transformer_model}')
+    logger.info(f'Sentence Transformer Name: {embedding_model}')
 
     embedder = SentenceTransformersDocumentEmbedder(
-        model=sentence_transformer_model,
+        model=embedding_model,
         device=device
     )
     embedder.warm_up()
@@ -200,7 +200,7 @@ def setup_document_stream_from_json(
 
     if embedder is None:
         embedder = make_embedder(
-            sentence_transformer_model=sentence_transformer_model
+            embedding_model=embedding_model
         )
 
     document_store = build_documentstore_embedder_retriever(
@@ -225,7 +225,7 @@ def setup_document_stream_from_list(
 
     if embedder is None:
         embedder = make_embedder(
-            sentence_transformer_model=sentence_transformer_model
+            embedding_model=embedding_model
         )
 
     input_documents = build_document_store_from_dicts(

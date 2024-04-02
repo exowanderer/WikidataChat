@@ -1,131 +1,178 @@
 import os
 
-# from haystack import Pipeline
+# Import Document class for creating document objects.
 from haystack import Document
+
+# Import AnswerBuilder for constructing answers.
 from haystack.components.builders.answer_builder import AnswerBuilder
+
+# Import ChatMessage for creating chat messages.
 from haystack.dataclasses import ChatMessage
 
-from multiprocessing import Pool, cpu_count
-from multiprocessing.dummy import Pool as ThreadPool
+# Import cpu_count for determining the number of cores available.
+from multiprocessing import cpu_count
 
+# Import custom modules for various functionalities.
 from .llm_config import llm
 from .logger import get_logger
 from .prompt import user_prompt_builders, system_prompts
 from .textification import get_wikidata_statements_from_query
 from .vector_store_interface import (
-    build_document_store_from_dicts,
+    # build_document_store_from_dicts,
     make_embedder,
-    setup_document_stream_from_json,
+    # setup_document_stream_from_json,
     setup_document_stream_from_list
 )
 
-
-# Create logger instance from base logger config in `logger.py`
-logger = get_logger(__name__)
-
-# _, retriever = setup_document_stream_from_json(
-#     json_dir='json_input',
-#     json_fname='excellent-articles_10.json',
-#     embedding_similarity_function="cosine",
-#     device="cpu"
-# )
-
-global embedder
-embedder = None
+# Retrieve the SERAPI API key from environment variables.
+SERAPI_API_KEY = os.environ.get("SERAPI_API_KEY")
 
 
-def rag_pipeline(
-        query: str, top_k: int = 3, lang: str = 'de', device: str = 'cpu',
-        content_key: str = None, meta_keys: list = [],
-        embedding_similarity_function: str = "cosine",
-        sentence_transformer_model: str = 'svalabs/german-gpl-adapted-covid'):
+class RetreivalAugmentedGenerationPipeline:
+    def __init__(
+            self, embedding_model='svalabs/german-gpl-adapted-covid',
+            device='cpu'):
+        """
+        Initializes the retrieval-augmented generation pipeline with the specified embedding model and device.
 
-    # TODO: Test if this loads more than once or needs a global variable
-    global embedder
-    if embedder is None:
-        embedder = make_embedder(
-            sentence_transformer_model=sentence_transformer_model,
-            device=device
+        Args:
+            embedding_model (str): The name of the embedding model to use.
+            device (str): The device to run the embedding model on, e.g., 'cpu' or 'cuda'.
+        """
+        # Initialize a logger for this class.
+        self.logger = get_logger(__name__)
+        self.device = device
+        self.embedding_model = embedding_model
+        # Initialize the embedder with the specified model and device.
+        self.embedder = make_embedder(
+            embedding_model=self.embedding_model,
+            device=self.device
         )
 
-    query_document = Document(content=query)
-    query_embedded = embedder.run([query_document])
-    query_embedding = query_embedded['documents'][0].embedding
+    def process_query(
+            self, query: str, top_k: int = 3, lang: str = 'de',
+            content_key: str = None, meta_keys: list = [],
+            embedding_similarity_function: str = "cosine",
+            wikidata_kwargs: dict = None):
+        """
+        Processes the given query to generate an answer using the retrieval-augmented generation pipeline.
 
-    wikidata_statements = get_wikidata_statements_from_query(
-        query,
-        lang='en',
-        timeout=10,
-        n_cores=cpu_count(),
-        verbose=False,
-        api_url='https://www.wikidata.org/w',
-        wikidata_base='"wikidata.org"',
-        serapi_api_key=os.environ.get("SERAPI_API_KEY"),
-        return_list=True
-    )
+        Args:
+            query (str): The user's query to process.
+            top_k (int): The number of top results to consider.
+            lang (str): The language of the query.
+            content_key (str): The key to extract content from the documents.
+            meta_keys (list): A list of keys to extract metadata from the documents.
+            embedding_similarity_function (str): The similarity function to use for embedding comparison.
+            wikidata_kwargs (dict, optional): Additional keyword arguments for querying Wikidata.
 
-    logger.debug(f'{wikidata_statements=}')
-    for wds_ in wikidata_statements:
-        logger.debug(f'{wds_=}')
+        Returns:
+            The first answer from the generated answers.
+        """
+        if wikidata_kwargs is None:
+            # Default Wikidata query parameters.
+            wikidata_kwargs = {
+                'timeout': 10,
+                'n_cores': cpu_count(),
+                'verbose': False,
+                'api_url': 'https://www.wikidata.org/w',
+                'wikidata_base': '"wikidata.org"',
+                'return_list': True
+            }
 
-    # logger.debug(f'{len(wikidata_statements)=}')
-    # logger.debug(f'{type(wikidata_statements)=}')
+        # Create a Document object from the query.
+        query_document = Document(content=query)
 
-    _, retriever = setup_document_stream_from_list(
-        dict_list=wikidata_statements,
-        content_key=content_key,
-        meta_keys=meta_keys,
-        embedder=embedder,
-        embedding_similarity_function=embedding_similarity_function,
-        device=device
-    )
+        # Embed the query document.
+        query_embedded = self.embedder.run([query_document])
 
-    retriever_results = retriever.run(
-        query_embedding=list(query_embedding),
-        filters=None,
-        top_k=top_k,
-        scale_score=None,
-        return_embedding=None
-    )
+        # Extract the embedding of the query document.
+        query_embedding = query_embedded['documents'][0].embedding
 
-    logger.debug('retriever results:')
-    for retriever_result_ in retriever_results['documents']:
-        logger.debug(retriever_result_)
+        # Retrieve Wikidata statements related to the query.
+        wikidata_statements = get_wikidata_statements_from_query(
+            query,
+            lang=lang,
+            serapi_api_key=SERAPI_API_KEY,
+            **wikidata_kwargs
+        )
 
-    system_prompt = system_prompts[lang]
-    user_prompt_builder = user_prompt_builders[lang]
+        # Log the retrieved Wikidata statements for debugging.
+        self.logger.debug(f'{wikidata_statements=}')
+        for wds_ in wikidata_statements:
+            # Log each Wikidata statement for debugging.
+            self.logger.debug(f'{wds_=}')
 
-    user_prompt_build = user_prompt_builder.run(
-        question=query_document.content,
-        documents=retriever_results['documents']
-    )
+        # Setup the document stream from the list of Wikidata statements.
+        _, retriever = setup_document_stream_from_list(
+            dict_list=wikidata_statements,
+            content_key=content_key,
+            meta_keys=meta_keys,
+            embedder=self.embedder,
+            embedding_similarity_function=embedding_similarity_function,
+            device=self.device
+        )
 
-    prompt = user_prompt_build['prompt']
+        # Run the retriever to find relevant documents
+        #   based on the query embedding.
+        retriever_results = retriever.run(
+            query_embedding=list(query_embedding),
+            filters=None,
+            top_k=top_k,
+            scale_score=None,
+            return_embedding=None
+        )
 
-    logger.debug(f'{prompt=}')
+        # Log the start of retriever results for debugging.
+        self.logger.debug('retriever results:')
+        for retriever_result_ in retriever_results['documents']:
+            # Log each retriever result for debugging.
+            self.logger.debug(retriever_result_)
 
-    messages = [
-        ChatMessage.from_system(system_prompt),
-        ChatMessage.from_user(prompt),
-    ]
+        # Get the system prompt for the specified language.
+        system_prompt = system_prompts[lang]
 
-    response = llm.run(
-        messages,
-        # generation_kwargs={"temperature": 0.2}
-    )
+        # Get the user prompt builder for the specified language.
+        user_prompt_builder = user_prompt_builders[lang]
 
-    logger.debug(response)
+        # Build the user prompt based on the retrieved documents
+        #   and the original query.
+        user_prompt_build = user_prompt_builder.run(
+            question=query_document.content,
+            documents=retriever_results['documents']
+        )
 
-    answer_builder = AnswerBuilder()
-    answer_build = answer_builder.run(
-        query=query_document.content,
-        replies=response['replies'],
-        meta=[r.meta for r in response['replies']],
-        documents=retriever_results['documents'],
-        pattern=None,
-        reference_pattern=None
-    )
+        # Extract the constructed prompt.
+        prompt = user_prompt_build['prompt']
 
-    logger.debug(f'{answer_build=}')
+        # Log the constructed prompt for debugging.
+        self.logger.debug(f'{prompt=}')
 
-    return answer_build['answers'][0]
+        # Create chat messages from the system and user prompts.
+        messages = [
+            ChatMessage.from_system(system_prompt),
+            ChatMessage.from_user(prompt),
+        ]
+
+        # Run the language model with the constructed chat messages.
+        response = llm.run(messages)
+
+        # Log the language model response for debugging.
+        self.logger.debug(response)
+
+        answer_builder = AnswerBuilder()  # Initialize the AnswerBuilder.
+
+        # Build the answer based on the language model's response
+        #   and the retrieved documents.
+        answer_build = answer_builder.run(
+            query=query_document.content,
+            replies=response['replies'],
+            meta=[r.meta for r in response['replies']],
+            documents=retriever_results['documents']
+        )
+
+        # Log the constructed answer for debugging.
+        self.logger.debug(f'{answer_build=}')
+
+        # Return the first answer from the constructed answers.
+        return answer_build['answers'][0]
