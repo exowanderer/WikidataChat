@@ -74,9 +74,8 @@ def get_json_from_wikidata(
     counter = 0
     while True:
         # logger.debug(f'{thing_url=}')
-        # if 'items//' in thing_url:
-        #     logger.debug("'items//' in thing_url")
-        #     # return {}, thing_url
+        if 'items//' in thing_url:
+            return {}, thing_url
 
         try:
             with urllib.request.urlopen(thing_url) as j_inn:

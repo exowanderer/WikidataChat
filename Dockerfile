@@ -35,7 +35,7 @@ RUN npm install -g yarn
 # Install ollama llm inference engine
 COPY --from=ollama /usr/bin/ollama /usr/local/ollama/bin/ollama
 ENV PATH="/usr/local/ollama/bin:${PATH}"
-
+ENV FRONTEND_STATIC_DIR='./frontend/dist'
 
 # Setup the app in workspace
 WORKDIR /workspace
