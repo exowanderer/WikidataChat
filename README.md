@@ -11,7 +11,7 @@ WikidataQAChat boasts a unique textification pipeline with the following capabil
 - **RAG Pipeline**: Merges Wikidata string statements with user-provided questions to generate informed and accurate answers through an LLM.
 - **User Interface**: Offers a friendly UI that not only presents answers but also provides linked lists of Wikidata and Wikipedia URLs for further exploration.
 
-![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/main/images/wikidatachat_meaning_of_life_example_mar25_2024.png?raw=true)
+![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/main/images/wikidatachat_meaning_of_life_example_mar25_2024.png)
 
 ## Getting Started
 
@@ -42,8 +42,8 @@ This will deploy the UI to `localhost:8000`, allowing local access to the Wikida
 After installation, access the WikidataQAChat through your web browser by navigating to `localhost:8000`. If deployed on an internet-accessible server, the interface can be accessed from the respective web address, providing a seamless experience for asking questions and receiving answers.
 
 The UI and Haystack functionality were developed with colleagues from Wikimedia Deutschland
-- [Haystack: rti](https://github.com/rti/gbnc/)
-- [UI: andrewtavis](https://github.com/andrewtavis/gbnc)
+- [Haystack Pipeline: rti](https://github.com/rti/gbnc/)
+- [Vue3 UI: andrewtavis](https://github.com/andrewtavis/gbnc)
 
 ## Contributing
 We welcome contributions from the community. Whether it's features, bug fixes, or documentation, here's how you can help:
@@ -59,4 +59,4 @@ WikidataQAChat is open-source software licensed under the MIT License. You are f
 ## Contact
 For questions, comments, or discussions, please open an issue on this GitHub repository. We are committed to fostering a welcoming and collaborative community.
 
-![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/main/images/WikidataChat_Meaning_of_Life_Graphic.jpg?raw=true)
+![Wikidata and the Meaning of Life](https://github.com/exowanderer/WikidataChat/blob/main/images/WikidataChat_Meaning_of_Life_Graphic.jpg)
