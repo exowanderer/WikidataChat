@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, Header
 
 # Import custom modules for the RAG pipeline and logging.
-from .rag import rag_pipeline
+from .rag import RetreivalAugmentedGenerationPipeline
 from .logger import get_logger
 
 # Create logger instance from base logger config in `logger.py`
@@ -16,7 +16,11 @@ logger = get_logger(__name__)  # Initialize a logger for this module.
 
 # Retrieve the frontend static directory path from environment variables, falling back to a default if not set.
 FRONTEND_STATIC_DIR = os.environ.get('FRONTEND_STATIC_DIR', './frontend/dist')
-API_SECRET = os.environ.get("API_SECRET", 'Thou shall [not] pass')
+API_SECRET = os.environ.get('API_SECRET', 'Thou shall [not] pass')
+EMBEDDING_MODEL = os.environ.get(
+    'EMBEDDING_MODEL',
+    'svalabs/german-gpl-adapted-covid'
+)
 
 app = FastAPI()  # Create an instance of the FastAPI application.
 
@@ -26,6 +30,12 @@ app.mount(
     "/assets",
     StaticFiles(directory=f"{FRONTEND_STATIC_DIR}/assets"),
     name="frontend-assets"
+)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+pipeline = RetreivalAugmentedGenerationPipeline(
+    embedding_model=EMBEDDING_MODEL,
+    device=device
 )
 
 
@@ -90,19 +100,27 @@ async def api(
     logger.debug(f'{lang=}')
 
     # Process the query using the RAG pipeline.
-    answer = rag_pipeline(
-        query=query,
-        top_k=top_k,
-        lang=lang,
-        content_key='statement',
-        meta_keys=[
+    answer = pipeline.process_query(
+        query=query,  # User query as a string
+        top_k=top_k,  # Number of nearest neighbors to return
+        lang=lang,  # Language passed through embedding
+        content_key='statement',  # Content key for embedding
+        meta_keys=[  # List of expected Wikidata keys
             'qid',
             'pid',
             'value',
             'item_label',
             'property_label',
             'value_content'
-        ]
+        ],
+        wikidata_kwargs={  # Customising the Wikidata REST API routines
+            'timeout': 10,
+            'n_cores': cpu_count(),
+            'verbose': False,
+            'api_url': 'https://www.wikidata.org/w',
+            'wikidata_base': '"wikidata.org"',
+            'return_list': True
+        }
     )
 
     # Log the metadata of documents in the answer for debugging.

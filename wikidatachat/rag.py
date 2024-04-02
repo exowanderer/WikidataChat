@@ -19,29 +19,40 @@ from .vector_store_interface import (
 )
 
 
-class RAGPipeline:
-    def __init__(self, sentence_transformer_model='svalabs/german-gpl-adapted-covid', device='cpu'):
+class RetreivalAugmentedGenerationPipeline:
+    def __init__(
+            self,
+            embedding_model='svalabs/german-gpl-adapted-covid', device='cpu'):
+
         self.logger = get_logger(__name__)
         self.embedder = make_embedder(
             sentence_transformer_model=sentence_transformer_model, device=device)
 
-    def process_query(self, query: str, top_k: int = 3, lang: str = 'de',
-                      content_key: str = None, meta_keys: list = [],
-                      embedding_similarity_function: str = "cosine"):
+    def process_query(
+            self, query: str, top_k: int = 3, lang: str = 'de',
+            content_key: str = None, meta_keys: list = [],
+            embedding_similarity_function: str = "cosine",
+            wikidata_kwargs: dict = None):
+
+        if wikidata_kwargs is None:
+            wikidata_kwargs = {
+                'timeout': 10,
+                'n_cores': cpu_count(),
+                'verbose': False,
+                'api_url': 'https://www.wikidata.org/w',
+                'wikidata_base': '"wikidata.org"',
+                'return_list': True
+            }
+
         query_document = Document(content=query)
         query_embedded = self.embedder.run([query_document])
         query_embedding = query_embedded['documents'][0].embedding
 
         wikidata_statements = get_wikidata_statements_from_query(
             query,
-            lang='en',
-            timeout=10,
-            n_cores=cpu_count(),
-            verbose=False,
-            api_url='https://www.wikidata.org/w',
-            wikidata_base='"wikidata.org"',
+            lang=lang,
             serapi_api_key=os.environ.get("SERAPI_API_KEY"),
-            return_list=True
+            **wikidata_kwargs
         )
 
         self.logger.debug(f'{wikidata_statements=}')
