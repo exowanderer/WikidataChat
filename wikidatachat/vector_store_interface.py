@@ -16,12 +16,15 @@ import torch
 from .logger import get_logger
 
 # Create logger instance from base logger config in `logger.py`
-logger = get_logger(__name__)
+logger = get_logger(__name__)  # Initialize logger for the current module.
 
 
 # disable this line to disable the embedding cache
 # EMBEDDING_CACHE_FILE = '/root/.cache/wdchat_embeddings.json'
+# Path for embedding cache file, set to None to disable caching.
 EMBEDDING_CACHE_FILE = None
+
+# Default embedding model, configurable via environment variable.
 EMBEDDING_MODEL = os.environ.get(
     'EMBEDDING_MODEL',
     'svalabs/german-gpl-adapted-covid'
@@ -32,17 +35,30 @@ def build_document_store_from_json(
         json_dir: str = 'json_input',
         json_fname: str = 'excellent-articles_10.json',
         **kwargs):
+    """
+    Builds a document store from a JSON file.
 
-    input_documents = []
+    Args:
+        json_dir (str): Directory containing the JSON file.
+        json_fname (str): Filename of the JSON file.
+        **kwargs: Arbitrary keyword arguments.
+
+    Returns:
+        list: A list of `Document` objects created from the JSON file content.
+    """
+    input_documents = []  # Initialize an empty list for documents.
 
     # TODO: Add the json strings as env variables
+    # Construct the full path to the JSON file.
     json_fpath = os.path.join(json_dir, json_fname)
 
-    if os.path.isfile(json_fpath):
+    if os.path.isfile(json_fpath):  # Check if the JSON file exists.
         logger.info(f'Loading data from {json_fpath}')
         with open(json_fpath, 'r') as finn:
-            json_obj = json.load(finn)
+            json_obj = json.load(finn)  # Load the JSON file content.
 
+        # Process the JSON object based on its structure (dict or list)
+        #   and create Document objects.
         if isinstance(json_obj, dict):
             input_documents = [
                 Document(
@@ -60,6 +76,7 @@ def build_document_store_from_json(
                 for obj_ in tqdm(json_obj)
             ]
     else:
+        # If the JSON file doesn't exist, return a list of dummy documents.
         return get_dummy_document_list()
 
     return input_documents
@@ -70,7 +87,22 @@ def build_document_store_from_dicts(
         content_key: str,
         meta_keys: list = [],
         **kwargs):
+    """
+    Builds a document store from a list of dictionaries.
 
+    Args:
+        dict_list (list): A list of dictionaries, each representing a document.
+            content_key (str): The key in the dictionary that contains the
+            document's content.
+        meta_keys (list): A list of keys for extracting metadata from the
+            dictionaries.
+        **kwargs: Arbitrary keyword arguments.
+
+    Returns:
+        list: A list of `Document` objects created from the dictionaries.
+    """
+    # Use a list comprehension to create Document objects from
+    #   the dictionaries, extracting content and metadata.
     return [
         Document(
             content=obj_[content_key],
@@ -81,6 +113,13 @@ def build_document_store_from_dicts(
 
 
 def get_dummy_document_list():
+    """
+    Returns a list of dummy `Document` objects.
+
+    Returns:
+        list: A list of dummy `Document` objects with predefined content
+            and metadata.
+    """
     return [
         Document(
             content="My name is Asra, I live in Paris.",
@@ -98,39 +137,75 @@ def get_dummy_document_list():
 
 
 def split_documents(input_documents: list):
-    splitter = DocumentSplitter(
+    """
+    Splits documents into smaller parts.
+
+    Args:
+        input_documents (list): A list of `Document` objects to be split.
+
+    Returns:
+        list: A list of `Document` objects after splitting.
+    """
+    splitter = DocumentSplitter(  # Initialize a DocumentSplitter.
         split_by="sentence",
         split_length=5,
         split_overlap=0
     )
+
+    # Split the documents and return the result.
     return splitter.run(input_documents)['documents']
 
 
 def clean_documents(input_documents: list):
-    cleaner = DocumentCleaner(
+    """
+    Cleans the content of documents.
+
+    Args:
+        input_documents (list): A list of `Document` objects to be cleaned.
+
+    Returns:
+        list: A list of `Document` objects after cleaning.
+    """
+    cleaner = DocumentCleaner(  # Initialize a DocumentCleaner.
         remove_empty_lines=True,
         remove_extra_whitespaces=True,
         remove_repeated_substrings=False
     )
 
+    # Clean the documents and return the result.
     return cleaner.run(input_documents)['documents']
 
 
 def make_embedder(embedding_model: str = EMBEDDING_MODEL, device: str = 'cpu'):
+    """
+    Creates a document embedder.
 
-    if torch.cuda.is_available():
-        logger.info('GPU is available.')
-        device = "cuda"
+    Args:
+        embedding_model (str): The model to use for embedding documents.
+        device (str): The device to run the embedding model on.
+
+    Returns:
+        SentenceTransformersDocumentEmbedder: An initialized document embedder.
+    """
+    # Use GPU if available, otherwise fallback to CPU.
+    device = "cuda" if torch.cuda.is_available() else device
+
+    logger.info(  # Log the name of the embedding model being used.
+        'GPU is available. Using GPU.'
+        if device == "cuda" else
+        'GPU is unavailable. Using CPU.'
+    )
 
     # https://huggingface.co/svalabs/german-gpl-adapted-covid
     logger.info(f'Sentence Transformer Name: {embedding_model}')
 
-    embedder = SentenceTransformersDocumentEmbedder(
+    embedder = SentenceTransformersDocumentEmbedder(  # Initialize the embedder.
         model=embedding_model,
         device=device
     )
-    embedder.warm_up()
+    embedder.warm_up()  # Warm up the embedder model.
 
+    # Return allocated SentenceTransformersDocumentEmbedder instance.
     return embedder
 
 
@@ -139,7 +214,23 @@ def build_documentstore_embedder_retriever(
         embedder: SentenceTransformersDocumentEmbedder = None,
         embedding_similarity_function: str = "cosine",
         **kwargs):
+    """
+    Builds a document store and populates it with embedded documents.
 
+    Args:
+        input_documents (list): A list of `Document` objects to be embedded and
+            stored.
+        embedder (SentenceTransformersDocumentEmbedder): The embedder to use
+            for generating document embeddings.
+        embedding_similarity_function (str): The similarity function to use in
+            the document store.
+        **kwargs: Arbitrary keyword arguments.
+
+    Returns:
+        InMemoryDocumentStore: The document store populated with embedded
+            documents.
+    """
+    # Initialize an InMemoryDocumentStore.
     document_store = InMemoryDocumentStore(
         embedding_similarity_function=embedding_similarity_function,
         # embedding_dim=768,
@@ -158,9 +249,13 @@ def build_documentstore_embedder_retriever(
     elif embedder is not None:
     """
     if embedder is not None:
+        # Log the start of the embedding generation process.
         logger.debug("Generating embeddings")
 
+        # Generate embeddings for the input documents.
         embedded = embedder.run(input_documents)
+
+        # Write the embedded documents to the document store.
         document_store.write_documents(
             documents=embedded['documents'],
             policy=DuplicatePolicy.OVERWRITE
@@ -182,6 +277,17 @@ def build_documentstore_embedder_retriever(
 
 
 def make_retriever(document_store):
+    """
+    Creates a retriever for the given document store.
+
+    Args:
+        document_store (InMemoryDocumentStore): The document store to create a retriever for.
+
+    Returns:
+        InMemoryEmbeddingRetriever: A retriever for the specified document store.
+    """
+
+    # Initialize and return a retriever for the document
     return InMemoryEmbeddingRetriever(document_store=document_store)
 
 
@@ -236,20 +342,20 @@ def setup_document_stream_from_json(**kwargs):
             Defaults to 'json_input'.
         json_fname (str): JSON filename with statements to be embedded.
             Defaults to 'excellent-articles_10.json'.
-        embedder (SentenceTransformersDocumentEmbedder): Haystack embedder 
+        embedder (SentenceTransformersDocumentEmbedder): Haystack embedder
             function to transform sentences into embedding vectors.
             Defaults to None.
-        embedding_similarity_function (str): Similarity function to implement 
+        embedding_similarity_function (str): Similarity function to implement
             when vector searching embedding databse. Defaults to "cosine".
-        device (str): PyTorch implementation requirement to establish on which 
+        device (str): PyTorch implementation requirement to establish on which
             chip to process the embedding model. Defaults to "cpu".
-        split_documents (bool): Toggle whether to split documents with Haystack 
+        split_documents (bool): Toggle whether to split documents with Haystack
             DocumentSplitter. Defaults to False.
-        clean_documents (bool): Toggle whether to clean documents with Haystack 
+        clean_documents (bool): Toggle whether to clean documents with Haystack
             DocumentCleaner. Defaults to False.
 
     Returns:
-        Function call to setup_document_stream with specific setup function and 
+        Function call to setup_document_stream with specific setup function and
             kwargs. setup_document_stream return document_store and retriever.
     """
     return setup_document_stream(build_document_store_from_json, **kwargs)
@@ -262,17 +368,17 @@ def setup_document_stream_from_list(**kwargs):
     KWArgs:
         dict_list (list): List of dictionary items to store in DocumentStore
         content_key (str): Key for dictionary as content in DocumentStore
-        meta_keys (list): List of keys for meta data in DocumentStore. 
+        meta_keys (list): List of keys for meta data in DocumentStore.
             Defaults to [].
-        embedder (SentenceTransformersDocumentEmbedder): Haystack embedder 
+        embedder (SentenceTransformersDocumentEmbedder): Haystack embedder
             function to transform sentences into embedding vectors.
             Defaults to None.
-        embedding_similarity_function (str): Similarity function to implement 
+        embedding_similarity_function (str): Similarity function to implement
             when vector searching embedding databse. Defaults to "cosine".
-        device (str): PyTorch implementation requirement to establish on which 
+        device (str): PyTorch implementation requirement to establish on which
             chip to process the embedding model. Defaults to "cpu".
     Returns:
-        Function call to setup_document_stream with specific setup function and 
+        Function call to setup_document_stream with specific setup function and
             kwargs. setup_document_stream return document_store and retriever.
     """
     return setup_document_stream(build_document_store_from_dicts, **kwargs)
