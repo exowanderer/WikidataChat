@@ -22,11 +22,16 @@ logger = get_logger(__name__)
 # disable this line to disable the embedding cache
 # EMBEDDING_CACHE_FILE = '/root/.cache/wdchat_embeddings.json'
 EMBEDDING_CACHE_FILE = None
+EMBEDDING_MODEL = os.environ.get(
+    'EMBEDDING_MODEL',
+    'svalabs/german-gpl-adapted-covid'
+)
 
 
 def build_document_store_from_json(
         json_dir: str = 'json_input',
-        json_fname: str = 'excellent-articles_10.json'):
+        json_fname: str = 'excellent-articles_10.json',
+        **kwargs):
 
     input_documents = []
 
@@ -63,7 +68,8 @@ def build_document_store_from_json(
 def build_document_store_from_dicts(
         dict_list: list,
         content_key: str,
-        meta_keys: list = []):
+        meta_keys: list = [],
+        **kwargs):
 
     return [
         Document(
@@ -110,9 +116,7 @@ def clean_documents(input_documents: list):
     return cleaner.run(input_documents)['documents']
 
 
-def make_embedder(
-        embedding_model: str = 'svalabs/german-gpl-adapted-covid',
-        device: str = 'cpu'):
+def make_embedder(embedding_model: str = EMBEDDING_MODEL, device: str = 'cpu'):
 
     if torch.cuda.is_available():
         logger.info('GPU is available.')
@@ -133,7 +137,8 @@ def make_embedder(
 def build_documentstore_embedder_retriever(
         input_documents: list,
         embedder: SentenceTransformersDocumentEmbedder = None,
-        embedding_similarity_function: str = "cosine"):
+        embedding_similarity_function: str = "cosine",
+        **kwargs):
 
     document_store = InMemoryDocumentStore(
         embedding_similarity_function=embedding_similarity_function,
@@ -198,9 +203,12 @@ def setup_document_stream(common_setup_fn, *args, **kwargs):
 
     embedder = kwargs.get('embedder')
     if embedder is None:
-        embedder = make_embedder(device=device, **kwargs)
+        if 'embedding_model' not in kwargs:
+            kwargs['embedding_model'] = EMBEDDING_MODEL
 
-    input_documents = common_setup_fn(*args, **kwargs, device=device)
+        embedder = make_embedder(**kwargs)
+
+    input_documents = common_setup_fn(*args, **kwargs)
 
     if 'split_documents' in kwargs and kwargs['split_documents']:
         input_documents = split_documents(input_documents)
@@ -211,8 +219,7 @@ def setup_document_stream(common_setup_fn, *args, **kwargs):
     document_store = build_documentstore_embedder_retriever(
         input_documents=input_documents,
         embedder=embedder,
-        device=device,
-        **kwargs
+        device=device
     )
 
     retriever = make_retriever(document_store)
