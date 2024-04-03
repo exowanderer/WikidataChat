@@ -249,7 +249,8 @@ def setup_document_stream_from_json(**kwargs):
             DocumentCleaner. Defaults to False.
 
     Returns:
-        Function call to setup_document_stream with specific setup function and kwargs.
+        Function call to setup_document_stream with specific setup function and 
+            kwargs. setup_document_stream return document_store and retriever.
     """
     return setup_document_stream(build_document_store_from_json, **kwargs)
 
@@ -271,88 +272,7 @@ def setup_document_stream_from_list(**kwargs):
         device (str): PyTorch implementation requirement to establish on which 
             chip to process the embedding model. Defaults to "cpu".
     Returns:
-        Function call to setup_document_stream with specific setup function and kwargs.
+        Function call to setup_document_stream with specific setup function and 
+            kwargs. setup_document_stream return document_store and retriever.
     """
     return setup_document_stream(build_document_store_from_dicts, **kwargs)
-
-
-"""
-def setup_document_stream_from_json(
-        json_dir: str = 'json_input',
-        json_fname: str = 'excellent-articles_10.json',
-        embedding_similarity_function: str = "cosine",
-        embedder: SentenceTransformersDocumentEmbedder = None,
-        device: str = "cpu"):
-
-    if torch.cuda.is_available():
-        logger.info('GPU is available.')
-        device = "cuda"
-
-    if embedder is None:
-        embedder = make_embedder(
-            embedding_model=embedding_model,
-            device=device
-        )
-
-    input_documents = build_document_store_from_json(
-        json_dir=json_dir,
-        json_fname=json_fname,
-        device=device
-    )
-
-    input_documents = split_documents(input_documents)
-    input_documents = clean_documents(input_documents)
-
-    document_store = build_documentstore_embedder_retriever(
-        input_documents=input_documents,
-        embedder=embedder,
-        embedding_similarity_function=embedding_similarity_function,
-        device=device
-    )
-
-    retriever = make_retriever(document_store)
-
-    return document_store, retriever
-
-
-def setup_document_stream_from_list(
-        dict_list: list,
-        content_key: str,
-        meta_keys: list = [],
-        embedder: SentenceTransformersDocumentEmbedder = None,
-        embedding_similarity_function: str = "cosine",
-        device: str = "cpu"):
-
-    if torch.cuda.is_available():
-        logger.info('GPU is available.')
-        device = "cuda"
-
-    if embedder is None:
-        embedder = make_embedder(
-            embedding_model=embedding_model,
-            device=device
-        )
-
-    input_documents = build_document_store_from_dicts(
-        dict_list=dict_list,
-        content_key=content_key,
-        meta_keys=meta_keys
-    )
-
-    # TODO: Research and decide to include DocumentSplitter routine
-    # input_documents = split_documents(input_documents)
-
-    # TODO: Research and decide to include DocumentCleaner routine
-    # input_documents = clean_documents(input_documents)
-
-    document_store = build_documentstore_embedder_retriever(
-        input_documents=input_documents,
-        embedder=embedder,
-        embedding_similarity_function=embedding_similarity_function,
-        device=device
-    )
-
-    retriever = make_retriever(document_store)
-
-    return document_store, retriever
-"""
