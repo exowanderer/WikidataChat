@@ -26,12 +26,14 @@ from .vector_store_interface import (
 
 # Retrieve the SERAPI API key from environment variables.
 SERAPI_API_KEY = os.environ.get("SERAPI_API_KEY")
+EMBEDDING_MODEL = os.environ.get(
+    'EMBEDDING_MODEL',
+    'svalabs/german-gpl-adapted-covid'
+)
 
 
 class RetreivalAugmentedGenerationPipeline:
-    def __init__(
-            self, embedding_model='svalabs/german-gpl-adapted-covid',
-            device='cpu'):
+    def __init__(self, embedding_model=EMBEDDING_MODEL, device='cpu'):
         """
         Initializes the retrieval-augmented generation pipeline with the specified embedding model and device.
 
@@ -50,7 +52,7 @@ class RetreivalAugmentedGenerationPipeline:
         )
 
     def process_query(
-            self, query: str, top_k: int = 3, lang: str = 'de',
+            self, query: str, top_k: int = 10, lang: str = 'de',
             content_key: str = None, meta_keys: list = [],
             embedding_similarity_function: str = "cosine",
             wikidata_kwargs: dict = None):
