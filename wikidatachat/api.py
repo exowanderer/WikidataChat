@@ -66,7 +66,7 @@ async def favicon():
 # async def api(query, top_k=10, lang='en'):
 @app.get("/api")
 async def api(
-        x_api_secret: Annotated[str, Header()], query, top_k=3, lang='en'):
+        x_api_secret: Annotated[str, Header()], query, top_k=10, lang='en'):
     """
     Handle the API requests to process and respond with relevant information based on the query.
 

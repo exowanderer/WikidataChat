@@ -50,7 +50,7 @@ class RetreivalAugmentedGenerationPipeline:
         )
 
     def process_query(
-            self, query: str, top_k: int = 3, lang: str = 'de',
+            self, query: str, top_k: int = 10, lang: str = 'de',
             content_key: str = None, meta_keys: list = [],
             embedding_similarity_function: str = "cosine",
             wikidata_kwargs: dict = None):
