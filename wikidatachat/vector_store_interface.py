@@ -26,14 +26,9 @@ EMBEDDING_CACHE_FILE = None
 
 def build_document_store_from_json(
         json_dir: str = 'json_input',
-        json_fname: str = 'excellent-articles_10.json',
-        device: str = "cpu"):
+        json_fname: str = 'excellent-articles_10.json'):
 
     input_documents = []
-
-    if torch.cuda.is_available():
-        logger.info('GPU is available.')
-        device = "cuda"
 
     # TODO: Add the json strings as env variables
     json_fpath = os.path.join(json_dir, json_fname)
@@ -119,6 +114,10 @@ def make_embedder(
         embedding_model: str = 'svalabs/german-gpl-adapted-covid',
         device: str = 'cpu'):
 
+    if torch.cuda.is_available():
+        logger.info('GPU is available.')
+        device = "cuda"
+
     # https://huggingface.co/svalabs/german-gpl-adapted-covid
     logger.info(f'Sentence Transformer Name: {embedding_model}')
 
@@ -134,11 +133,10 @@ def make_embedder(
 def build_documentstore_embedder_retriever(
         input_documents: list,
         embedder: SentenceTransformersDocumentEmbedder = None,
-        embedding_similarity_function: str = "cosine",
-        device: str = 'cpu'):
+        embedding_similarity_function: str = "cosine"):
 
     document_store = InMemoryDocumentStore(
-        embedding_similarity_function="cosine",
+        embedding_similarity_function=embedding_similarity_function,
         # embedding_dim=768,
         # duplicate_documents="overwrite"
     )
@@ -189,6 +187,16 @@ def setup_document_stream_from_json(
         embedder: SentenceTransformersDocumentEmbedder = None,
         device: str = "cpu"):
 
+    if torch.cuda.is_available():
+        logger.info('GPU is available.')
+        device = "cuda"
+
+    if embedder is None:
+        embedder = make_embedder(
+            embedding_model=embedding_model,
+            device=device
+        )
+
     input_documents = build_document_store_from_json(
         json_dir=json_dir,
         json_fname=json_fname,
@@ -197,11 +205,6 @@ def setup_document_stream_from_json(
 
     input_documents = split_documents(input_documents)
     input_documents = clean_documents(input_documents)
-
-    if embedder is None:
-        embedder = make_embedder(
-            embedding_model=embedding_model
-        )
 
     document_store = build_documentstore_embedder_retriever(
         input_documents=input_documents,
@@ -223,9 +226,14 @@ def setup_document_stream_from_list(
         embedding_similarity_function: str = "cosine",
         device: str = "cpu"):
 
+    if torch.cuda.is_available():
+        logger.info('GPU is available.')
+        device = "cuda"
+
     if embedder is None:
         embedder = make_embedder(
-            embedding_model=embedding_model
+            embedding_model=embedding_model,
+            device=device
         )
 
     input_documents = build_document_store_from_dicts(
@@ -234,7 +242,10 @@ def setup_document_stream_from_list(
         meta_keys=meta_keys
     )
 
+    # TODO: Research and decide to include DocumentSplitter routine
     # input_documents = split_documents(input_documents)
+
+    # TODO: Research and decide to include DocumentCleaner routine
     # input_documents = clean_documents(input_documents)
 
     document_store = build_documentstore_embedder_retriever(
