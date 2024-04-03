@@ -9,10 +9,10 @@ from haystack_integrations.components.generators.ollama import (
 from .logger import get_logger
 
 
-class AppConfig:
+class EnvConfig:
     def __init__(self):
         """
-        Initializes the AppConfig class, loading and validating required configurations
+        Initializes the EnvConfig class, loading and validating required configurations
         from environment variables.
         """
 
@@ -74,8 +74,8 @@ class AppConfig:
 # Initialize the logger for this module.
 logger = get_logger(__name__)
 
-# Load the application configuration using the AppConfig class.
-config = AppConfig()
+# Load the application configuration using the EnvConfig class.
+config = EnvConfig()
 
 # Log the loaded configuration values for debugging purposes.
 logger.debug(f'Using {config.OLLAMA_MODEL_NAME=}')
