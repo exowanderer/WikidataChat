@@ -180,6 +180,96 @@ def make_retriever(document_store):
     return InMemoryEmbeddingRetriever(document_store=document_store)
 
 
+def setup_document_stream(common_setup_fn, *args, **kwargs):
+    """
+    A generic function to set up the document stream by performing common setup tasks
+    and then delegating to a specific setup function provided as an argument.
+
+    Args:
+        common_setup_fn (callable): A function specific to the type of document source (JSON or list).
+        *args: Positional arguments to be passed to the common_setup_fn.
+        **kwargs: Keyword arguments to be passed to the common_setup_fn.
+
+    Returns:
+        Tuple[InMemoryDocumentStore, InMemoryEmbeddingRetriever]: A tuple containing the document store and retriever.
+    """
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    logger.info(f'Using device: {device}')
+
+    embedder = kwargs.get('embedder')
+    if embedder is None:
+        embedder = make_embedder(device=device, **kwargs)
+
+    input_documents = common_setup_fn(*args, **kwargs, device=device)
+
+    if 'split_documents' in kwargs and kwargs['split_documents']:
+        input_documents = split_documents(input_documents)
+
+    if 'clean_documents' in kwargs and kwargs['clean_documents']:
+        input_documents = clean_documents(input_documents)
+
+    document_store = build_documentstore_embedder_retriever(
+        input_documents=input_documents,
+        embedder=embedder,
+        device=device,
+        **kwargs
+    )
+
+    retriever = make_retriever(document_store)
+
+    return document_store, retriever
+
+
+def setup_document_stream_from_json(**kwargs):
+    """
+    Wrapper function for setting up document stream from JSON source.
+
+    KWArgs:
+        json_dir (str): Director location with JSON for embedding vectors.
+            Defaults to 'json_input'.
+        json_fname (str): JSON filename with statements to be embedded.
+            Defaults to 'excellent-articles_10.json'.
+        embedder (SentenceTransformersDocumentEmbedder): Haystack embedder 
+            function to transform sentences into embedding vectors.
+            Defaults to None.
+        embedding_similarity_function (str): Similarity function to implement 
+            when vector searching embedding databse. Defaults to "cosine".
+        device (str): PyTorch implementation requirement to establish on which 
+            chip to process the embedding model. Defaults to "cpu".
+        split_documents (bool): Toggle whether to split documents with Haystack 
+            DocumentSplitter. Defaults to False.
+        clean_documents (bool): Toggle whether to clean documents with Haystack 
+            DocumentCleaner. Defaults to False.
+
+    Returns:
+        Function call to setup_document_stream with specific setup function and kwargs.
+    """
+    return setup_document_stream(build_document_store_from_json, **kwargs)
+
+
+def setup_document_stream_from_list(**kwargs):
+    """
+    Wrapper function for setting up document stream from a list source.
+
+    KWArgs:
+        dict_list (list): List of dictionary items to store in DocumentStore
+        content_key (str): Key for dictionary as content in DocumentStore
+        meta_keys (list): List of keys for meta data in DocumentStore. 
+            Defaults to [].
+        embedder (SentenceTransformersDocumentEmbedder): Haystack embedder 
+            function to transform sentences into embedding vectors.
+            Defaults to None.
+        embedding_similarity_function (str): Similarity function to implement 
+            when vector searching embedding databse. Defaults to "cosine".
+        device (str): PyTorch implementation requirement to establish on which 
+            chip to process the embedding model. Defaults to "cpu".
+    Returns:
+        Function call to setup_document_stream with specific setup function and kwargs.
+    """
+    return setup_document_stream(build_document_store_from_dicts, **kwargs)
+
+
+"""
 def setup_document_stream_from_json(
         json_dir: str = 'json_input',
         json_fname: str = 'excellent-articles_10.json',
@@ -258,3 +348,4 @@ def setup_document_stream_from_list(
     retriever = make_retriever(document_store)
 
     return document_store, retriever
+"""
