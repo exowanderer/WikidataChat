@@ -20,8 +20,14 @@ class EnvConfig:
         self.HUGGING_FACE_HUB_TOKEN = self._load_env_var(
             'HUGGING_FACE_HUB_TOKEN'
         )
-        self.OLLAMA_MODEL_NAME = self._load_env_var('OLLAMA_MODEL_NAME')
-        self.OLLAMA_URL = self._load_env_var('OLLAMA_URL')
+        self.OLLAMA_MODEL_NAME = self._load_env_var(
+            'OLLAMA_MODEL_NAME',
+            'stablelm2:1.6b-zephyr'
+        )
+        self.OLLAMA_URL = self._load_env_var(
+            'OLLAMA_URL',
+            'http://localhost:11434'
+        )
 
         # Load and validate environment variable for timeout,
         #   with a default of 120 if not set.
