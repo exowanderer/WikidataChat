@@ -19,7 +19,9 @@ WikidataChat boasts a unique textification pipeline with the following capabilit
 - Docker installed on your system or an active Python environment.
 
 ### Docker Installation (Recommended)
-Deploy WikidataChat using Docker with the following commands:
+1. Follow these instructions to [install Docker](https://docs.docker.com/engine/install/) on your system.
+
+2. Deploy WikidataChat using Docker with the following commands:
 
 ```bash
 DOCKER_BUILDKIT=1 docker build . -t wdchat
