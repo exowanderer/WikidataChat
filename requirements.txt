@@ -21,11 +21,11 @@ lazy-imports==0.3.1
 MarkupSafe==2.1.4
 monotonic==1.6
 more-itertools==10.2.0
-networkx>=3.1
-numpy>=1.24.4
+networkx==3.2.1
+numpy==1.26.3
 ollama-haystack==0.0.3
 openai==1.10.0
-pandas>=2.0.3
+pandas==2.2.0
 posthog==3.3.2
 pydantic==2.5.3
 pydantic_core==2.14.6
@@ -37,9 +37,9 @@ requests==2.31.0
 sentence-transformers==2.3.1
 six==1.16.0
 sniffio==1.3.0
-starlette>=0.35.0
+starlette<0.36.0
 tenacity==8.2.3
-testresources==2.0.1
+torch==2.1.2
 tqdm==4.66.1
 typing_extensions==4.9.0
 tzdata==2023.4
