@@ -4,6 +4,7 @@ import json
 from tqdm import tqdm
 
 from haystack import Document  # , Pipeline
+from haystack.utils import ComponentDevice
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.document_stores.in_memory import InMemoryDocumentStore
 from haystack.components.retrievers.in_memory import InMemoryEmbeddingRetriever
@@ -189,6 +190,7 @@ def make_embedder(embedding_model: str = EMBEDDING_MODEL, device: str = 'cpu'):
     """
     # Use GPU if available, otherwise fallback to CPU.
     device = "cuda" if torch.cuda.is_available() else device
+    device = ComponentDevice.from_str(device)
 
     logger.info(  # Log the name of the embedding model being used.
         'GPU is available. Using GPU.'

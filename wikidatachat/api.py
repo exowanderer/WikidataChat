@@ -145,7 +145,13 @@ async def api(
     logger.debug(f'{answer=}')
 
     # Return the processed answer and sources.
-    return {
-        "answer": answer.data.content,
-        "sources": sources
-    }
+    if hasattr(answer.data, 'content'):
+        return {
+            "answer": answer.data.content,
+            "sources": sources
+        }
+    else:
+        return {
+            "answer": '',
+            "sources": sources
+        }
