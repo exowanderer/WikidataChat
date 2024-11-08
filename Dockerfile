@@ -5,7 +5,7 @@ ARG CUDA_FROM=nvidia/cuda:$CUDA_VERSION-cudnn$CUDNN_VERSION-devel-ubuntu$UBUNTU_
 
 ARG OLLAMA_VERSION="0.1.22"
 ARG OLLAMA_FROM=ollama/ollama:$OLLAMA_VERSION
-FROM $OLLAMA_FROM as ollama
+FROM $OLLAMA_FROM AS ollama
 
 # Base NVidia CUDA Ubuntu image
 FROM $CUDA_FROM
